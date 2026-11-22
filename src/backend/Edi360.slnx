@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="Edi360.Api/Edi360.Api.csproj" />
+  <Project Path="Edi360.Tests/Edi360.Tests.csproj" />
+</Solution>
