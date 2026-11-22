@@ -40,6 +40,7 @@ RUN apt-get update \
 WORKDIR /app
 COPY --from=build /app/publish .
 ENV ASPNETCORE_ENVIRONMENT=Production \
+    EDI_DATA_ROOT=/tmp/edi360 \
     DOTNET_EnableDiagnostics=0
 EXPOSE 80
 CMD ["sh", "-c", "dotnet Edi360.Api.dll --urls http://0.0.0.0:${PORT:-80}"]

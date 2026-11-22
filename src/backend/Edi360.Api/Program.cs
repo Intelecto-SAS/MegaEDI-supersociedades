@@ -105,20 +105,33 @@ app.Use(async (ctx, next) =>
 });
 
 app.MapControllers();
-app.MapGet("/api/salud", (IConfiguration config) => Results.Ok(new
-{
-    estado = "ok",
-    nombre = "EDI 360",
-    persistencia = DatabaseHosting.IsDurable(config) ? "compartida" : "local"
-}));
 
-using (var scope = app.Services.CreateScope())
+string? bootError = null;
+try
 {
+    using var scope = app.Services.CreateScope();
     var edi = scope.ServiceProvider.GetRequiredService<EdiDbContext>();
     var legacy = scope.ServiceProvider.GetRequiredService<LegacyDbContext>();
     var seeder = scope.ServiceProvider.GetRequiredService<DemoSeeder>();
     await PrepareDatabaseAsync(edi, legacy, seeder);
 }
+catch (Exception ex)
+{
+    bootError = ex.ToString();
+    Console.Error.WriteLine(bootError);
+}
+
+app.MapGet("/api/salud", (IConfiguration config) =>
+{
+    if (bootError is not null)
+        return Results.Json(new { estado = "error", detalle = bootError }, statusCode: 500);
+    return Results.Ok(new
+    {
+        estado = "ok",
+        nombre = "EDI 360",
+        persistencia = DatabaseHosting.IsDurable(config) ? "compartida" : "local"
+    });
+});
 
 app.Run();
 
