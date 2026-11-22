@@ -11,7 +11,6 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 COPY --from=build /app .
-ENV ASPNETCORE_URLS=http://0.0.0.0:80
 ENV ASPNETCORE_ENVIRONMENT=Production
 EXPOSE 80
-ENTRYPOINT ["dotnet", "Edi360.Api.dll"]
+CMD ["sh", "-c", "dotnet Edi360.Api.dll --urls http://0.0.0.0:${PORT:-80}"]

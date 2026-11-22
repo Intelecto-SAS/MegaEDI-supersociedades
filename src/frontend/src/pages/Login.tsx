@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { api } from '@/lib/api'
+import { api, isLocalHost } from '@/lib/api'
 import type { Official } from '@/lib/types'
 import { useAuth } from '@/lib/auth'
 import { useNavigate } from 'react-router-dom'
@@ -59,17 +59,35 @@ export function LoginPage() {
         {oficiales.isError && (
           <div className="max-w-xl rounded-xl border border-brand/30 bg-brand/5 p-5 mb-8">
             <p className="font-semibold text-navy">El servidor de la demostración no está en marcha.</p>
-            <p className="text-sm text-muted mt-2">
-              En Windows, en la carpeta del proyecto, abra una terminal y ejecute:
-            </p>
-            <pre className="mt-2 rounded-md bg-paper px-3 py-2 text-sm">scripts\start-api.cmd</pre>
-            <p className="text-sm text-muted mt-3">
-              En macOS o Linux: <code>./scripts/dev.sh</code>
-            </p>
-            <p className="text-sm text-muted mt-2">
-              Necesita el SDK de .NET 10. Compruebe con <code>dotnet --version</code>.
-              Cuando http://127.0.0.1:5080/api/salud responda, pulse reintentar.
-            </p>
+            {isLocalHost() ? (
+              <>
+                <p className="text-sm text-muted mt-2">
+                  En Windows, en la carpeta del proyecto, abra una terminal y ejecute:
+                </p>
+                <pre className="mt-2 rounded-md bg-paper px-3 py-2 text-sm">scripts\start-api.cmd</pre>
+                <p className="text-sm text-muted mt-3">
+                  En macOS o Linux: <code>./scripts/dev.sh</code>
+                </p>
+                <p className="text-sm text-muted mt-2">
+                  Necesita el SDK de .NET 10. Compruebe con <code>dotnet --version</code>.
+                  Cuando http://127.0.0.1:5080/api/salud responda, pulse reintentar.
+                </p>
+              </>
+            ) : (
+              <>
+                <p className="text-sm text-muted mt-2">
+                  En esta dirección la interfaz está publicada, pero la API no responde.
+                  Abra <code>/api/salud</code> en la misma URL. Debe devolver JSON con
+                  <code>estado: ok</code>.
+                </p>
+                <p className="text-sm text-muted mt-2">
+                  En Vercel, Root Directory debe estar vacío (raíz del repositorio), el
+                  despliegue debe mostrar los servicios <code>frontend</code> y{' '}
+                  <code>backend</code>, y Neon debe crear <code>DATABASE_URL</code>.
+                  Pasos en <code>docs/despliegue-vercel.md</code>.
+                </p>
+              </>
+            )}
             <Button className="mt-4" onClick={() => oficiales.refetch()}>Reintentar</Button>
           </div>
         )}
