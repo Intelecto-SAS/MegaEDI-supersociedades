@@ -4,17 +4,19 @@ import type { Official } from '@/lib/types'
 import { useAuth } from '@/lib/auth'
 import { useNavigate } from 'react-router-dom'
 import { useMemo, useState } from 'react'
-import { BrandMark, FlagStripe } from '@/components/ui'
+import { BrandMark, Button, FlagStripe } from '@/components/ui'
 
 export function LoginPage() {
   const { login } = useAuth()
   const nav = useNavigate()
   const [busy, setBusy] = useState<string | null>(null)
   const [err, setErr] = useState('')
-  const { data } = useQuery({
+  const oficiales = useQuery({
     queryKey: ['oficiales'],
     queryFn: () => api.get<Official[]>('/api/auth/oficiales'),
+    retry: 1,
   })
+  const data = oficiales.data
 
   const groups = useMemo(() => {
     const map = new Map<string, Official[]>()
@@ -53,6 +55,24 @@ export function LoginPage() {
           </div>
         </div>
         {err && <p className="mb-4 text-brand">{err}</p>}
+        {oficiales.isLoading && <p className="text-muted">Conectando con el servidor…</p>}
+        {oficiales.isError && (
+          <div className="max-w-xl rounded-xl border border-brand/30 bg-brand/5 p-5 mb-8">
+            <p className="font-semibold text-navy">El servidor de la demostración no está en marcha.</p>
+            <p className="text-sm text-muted mt-2">
+              En Windows, en la carpeta del proyecto, abra una terminal y ejecute:
+            </p>
+            <pre className="mt-2 rounded-md bg-paper px-3 py-2 text-sm">scripts\start-api.cmd</pre>
+            <p className="text-sm text-muted mt-3">
+              En macOS o Linux: <code>./scripts/dev.sh</code>
+            </p>
+            <p className="text-sm text-muted mt-2">
+              Necesita el SDK de .NET 10. Compruebe con <code>dotnet --version</code>.
+              Cuando http://127.0.0.1:5080/api/salud responda, pulse reintentar.
+            </p>
+            <Button className="mt-4" onClick={() => oficiales.refetch()}>Reintentar</Button>
+          </div>
+        )}
         <div className="space-y-8">
           {groups.map(([dept, people]) => (
             <section key={dept}>
