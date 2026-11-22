@@ -130,6 +130,8 @@ static async Task PrepareDatabaseAsync(EdiDbContext edi, LegacyDbContext legacy,
         try
         {
             await edi.Database.ExecuteSqlRawAsync("SELECT pg_advisory_lock(360360)");
+            await edi.Database.ExecuteSqlRawAsync("CREATE SCHEMA IF NOT EXISTS edi");
+            await edi.Database.ExecuteSqlRawAsync("CREATE SCHEMA IF NOT EXISTS gedess");
             await edi.Database.EnsureCreatedAsync();
             await legacy.Database.EnsureCreatedAsync();
             await seeder.EnsureAsync();
