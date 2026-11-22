@@ -63,7 +63,7 @@ No copie cadenas de conexión en el código ni en capturas de la presentación.
 - **Entra y al recargar pide de nuevo la clave.** Falta Neon, o el despliegue anterior no tenía `DATABASE_URL`.
 - **404 en una ruta como `/documental` al recargar.** El servicio de interfaz debe reescribir a `index.html` (ya está en `vercel.json`).
 - **La API no responde.** En Logs del servicio `backend`, el proceso debe escuchar el puerto `PORT` de Vercel, no el 80 fijo.
-- **El build falla en `dotnet publish`.** El contenedor debe publicar solo `linux-x64` (ya está en `Dockerfile.vercel`). Vuelva a desplegar esta rama. Si el log no muestra el error de C#, suele ser falta de memoria al copiar nativos de todas las plataformas.
+- **El build falla en `dotnet publish`.** Redesplegue la rama `cursor/api-vercel-485b` (Dockerfile con restore `linux-x64`, `--no-restore` alineado y `-v n`). En Logs del servicio `backend`, copie las líneas que empiezan por `error` de MSBuild, no solo el comando `buildah`. Si no hay ninguna, el builder se quedó sin memoria.
 - **Error al crear tablas.** Revise que `DATABASE_URL` tenga `sslmode=require` (Neon lo trae).
 
 Local no usa estas variables: sigue en SQLite.
