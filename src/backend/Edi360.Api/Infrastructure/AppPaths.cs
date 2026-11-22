@@ -11,8 +11,12 @@ public sealed class AppPaths
 
     public AppPaths(IWebHostEnvironment env)
     {
-        DataRoot = Environment.GetEnvironmentVariable("EDI_DATA_ROOT")
-            ?? Path.GetFullPath(Path.Combine(env.ContentRootPath, "..", "..", "..", "data"));
+        var configured = Environment.GetEnvironmentVariable("EDI_DATA_ROOT");
+        DataRoot = !string.IsNullOrWhiteSpace(configured)
+            ? configured
+            : env.IsProduction()
+                ? "/tmp/edi360"
+                : Path.GetFullPath(Path.Combine(env.ContentRootPath, "..", "..", "..", "data"));
         Directory.CreateDirectory(DataRoot);
         EdiDb = Path.Combine(DataRoot, "edi360.db");
         LegacyDb = Path.Combine(DataRoot, "gedess-legacy.db");
