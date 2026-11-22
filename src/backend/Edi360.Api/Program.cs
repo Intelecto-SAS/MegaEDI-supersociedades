@@ -4,8 +4,11 @@ using Edi360.Api.Data;
 using Edi360.Api.Data.Seed;
 using Edi360.Api.Infrastructure;
 using Edi360.Api.Security;
+using System.Data;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Storage;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -143,10 +146,8 @@ static async Task PrepareDatabaseAsync(EdiDbContext edi, LegacyDbContext legacy,
         try
         {
             await edi.Database.ExecuteSqlRawAsync("SELECT pg_advisory_lock(360360)");
-            await edi.Database.ExecuteSqlRawAsync("CREATE SCHEMA IF NOT EXISTS edi");
-            await edi.Database.ExecuteSqlRawAsync("CREATE SCHEMA IF NOT EXISTS gedess");
-            await edi.Database.EnsureCreatedAsync();
-            await legacy.Database.EnsureCreatedAsync();
+            await EnsureSchemaTablesAsync(edi, "edi", "Users");
+            await EnsureSchemaTablesAsync(legacy, "gedess", "Records");
             await seeder.EnsureAsync();
         }
         finally
@@ -160,6 +161,46 @@ static async Task PrepareDatabaseAsync(EdiDbContext edi, LegacyDbContext legacy,
     await edi.Database.EnsureCreatedAsync();
     await legacy.Database.EnsureCreatedAsync();
     await seeder.EnsureAsync();
+}
+
+// EnsureCreated no crea tablas si Neon ya tiene alguna (aunque sea de otro esquema).
+static async Task EnsureSchemaTablesAsync(DbContext db, string schema, string table)
+{
+    if (schema == "edi")
+        await db.Database.ExecuteSqlRawAsync("CREATE SCHEMA IF NOT EXISTS edi");
+    else
+        await db.Database.ExecuteSqlRawAsync("CREATE SCHEMA IF NOT EXISTS gedess");
+
+    if (!await RelationMissingAsync(db, schema, table))
+        return;
+
+    if (schema == "edi")
+    {
+        await db.Database.ExecuteSqlRawAsync("DROP SCHEMA IF EXISTS edi CASCADE");
+        await db.Database.ExecuteSqlRawAsync("CREATE SCHEMA edi");
+    }
+    else
+    {
+        await db.Database.ExecuteSqlRawAsync("DROP SCHEMA IF EXISTS gedess CASCADE");
+        await db.Database.ExecuteSqlRawAsync("CREATE SCHEMA gedess");
+    }
+
+    db.GetService<IRelationalDatabaseCreator>().CreateTables();
+}
+
+static async Task<bool> RelationMissingAsync(DbContext db, string schema, string table)
+{
+    var conn = db.Database.GetDbConnection();
+    if (conn.State != ConnectionState.Open)
+        await conn.OpenAsync();
+    await using var cmd = conn.CreateCommand();
+    cmd.CommandText = "SELECT to_regclass(@name) IS NULL";
+    var p = cmd.CreateParameter();
+    p.ParameterName = "name";
+    p.Value = schema + ".\"" + table + "\"";
+    cmd.Parameters.Add(p);
+    var result = await cmd.ExecuteScalarAsync();
+    return result is true;
 }
 
 public partial class Program;
