@@ -22,7 +22,7 @@ public sealed class AuthController(AuthService auth, ICurrentUserAccessor curren
     public async Task<ActionResult<SessionDto>> Login([FromBody] LoginRequest req, CancellationToken ct)
     {
         var session = await auth.SignInAsync(req.UserName, req.Password, ct);
-        SetCookie(session.Id);
+        Response.Cookies.Append(AuthService.CookieName, session.Id.ToString(), AuthService.SessionCookie(Request));
         var user = await auth.LoadCurrentUserAsync(session.UserId, session.ImpersonatedByUserId, ct);
         return Ok(await ToSession(user, db, ct));
     }
@@ -32,7 +32,7 @@ public sealed class AuthController(AuthService auth, ICurrentUserAccessor curren
     {
         if (Request.Cookies.TryGetValue(AuthService.CookieName, out var sid) && Guid.TryParse(sid, out var id))
             await auth.SignOutAsync(id, ct);
-        Response.Cookies.Delete(AuthService.CookieName);
+        Response.Cookies.Delete(AuthService.CookieName, AuthService.SessionCookie(Request));
         return Ok();
     }
 
@@ -46,18 +46,6 @@ public sealed class AuthController(AuthService auth, ICurrentUserAccessor curren
     [HttpGet("oficiales")]
     public async Task<ActionResult<List<OfficialDto>>> Officials([FromServices] DemoService demo, CancellationToken ct) =>
         Ok(await demo.OfficialsAsync(ct));
-
-    private void SetCookie(Guid sessionId)
-    {
-        Response.Cookies.Append(AuthService.CookieName, sessionId.ToString(), new CookieOptions
-        {
-            HttpOnly = true,
-            SameSite = SameSiteMode.Lax,
-            Secure = false,
-            Path = "/",
-            Expires = DateTimeOffset.UtcNow.AddHours(12)
-        });
-    }
 
     internal static async Task<SessionDto> ToSession(CurrentUser user, EdiDbContext db, CancellationToken ct)
     {
@@ -79,10 +67,7 @@ public sealed class DemoController(DemoService demo, AuthService auth, ICurrentU
     {
         var actorId = Me.ImpersonatedBy ?? Me.UserId;
         var session = await auth.ImpersonateAsync(req.UserId, actorId, ct);
-        Response.Cookies.Append(AuthService.CookieName, session.Id.ToString(), new CookieOptions
-        {
-            HttpOnly = true, SameSite = SameSiteMode.Lax, Path = "/", Expires = DateTimeOffset.UtcNow.AddHours(12)
-        });
+        Response.Cookies.Append(AuthService.CookieName, session.Id.ToString(), AuthService.SessionCookie(Request));
         var user = await auth.LoadCurrentUserAsync(session.UserId, session.ImpersonatedByUserId, ct);
         return Ok(await AuthController.ToSession(user, db, ct));
     }
@@ -496,7 +481,7 @@ public sealed class CatalogController(EdiDbContext db, ICurrentUserAccessor curr
 }
 
 [Route("api/seguridad")]
-public sealed class SecurityController(EdiDbContext db, ICurrentUserAccessor current) : EdiController(current)
+public sealed class SecurityController(EdiDbContext db, IFileStorage files, ICurrentUserAccessor current) : EdiController(current)
 {
     [HttpGet("auditoria")]
     public async Task<IActionResult> Audit([FromQuery] int take = 50, CancellationToken ct = default)
@@ -578,7 +563,7 @@ public sealed class SecurityController(EdiDbContext db, ICurrentUserAccessor cur
     {
         Access.Require(Me, "J5.VER");
         var p = await db.ProcessPages.FirstAsync(x => x.Id == id, ct);
-        var html = System.IO.File.Exists(p.StoragePath) ? await System.IO.File.ReadAllTextAsync(p.StoragePath, ct) : "";
+        var html = await files.ReadTextAsync(p.StoragePath, ct) ?? "";
         return Ok(new PageReviewDto(p.Id, p.Title, p.Status, p.Findings, html.Length > 800 ? html[..800] : html));
     }
 
@@ -625,6 +610,25 @@ public sealed class SecurityController(EdiDbContext db, ICurrentUserAccessor cur
             .Where(s => s.Name.Contains(q) || s.Nit.Contains(q)).Take(8)
             .Select(s => new { tipo = "Sociedad", s.Id, titulo = s.Nit, Subject = s.Name });
         return Ok(new { radicados = recs, expedientes = await cases.ToListAsync(ct), sociedades = await soc.ToListAsync(ct) });
+    }
+}
+
+[Route("api/eventos")]
+public sealed class EventsController(OutboxProcessor processor) : ControllerBase
+{
+    [HttpGet("procesar")]
+    [HttpPost("procesar")]
+    public async Task<IActionResult> Process(CancellationToken ct)
+    {
+        var secret = Environment.GetEnvironmentVariable("CRON_SECRET");
+        if (!string.IsNullOrWhiteSpace(secret))
+        {
+            var expected = "Bearer " + secret;
+            if (!string.Equals(Request.Headers.Authorization.ToString(), expected, StringComparison.Ordinal))
+                return Unauthorized();
+        }
+        await processor.ProcessOnce(ct);
+        return Ok(new { estado = "ok" });
     }
 }
 

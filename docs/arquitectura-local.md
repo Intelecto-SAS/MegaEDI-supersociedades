@@ -11,4 +11,6 @@ Monolito modular:
 
 Inicio: `./scripts/dev.sh` aplica la base, carga datos ficticios y levanta interfaz y API. No usa Docker.
 
+En Vercel la misma aplicación se publica con `vercel.json` (interfaz Vite + API en contenedor). Ahí SQLite no persiste: se usa Postgres (`DATABASE_URL` de Neon) y los documentos van en la base. Ver `docs/despliegue-vercel.md`.
+
 Los dominios (documental, justicia, supervisión, datos, informes, modernización) se separan por servicios. Ningún módulo escribe en “la base del otro”: los cambios cruzados salen por hechos del proceso.

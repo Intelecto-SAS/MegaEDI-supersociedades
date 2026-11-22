@@ -8,3 +8,4 @@
 - Las tablas de retención no eliminan archivos. La anulación de un radicado exige justificación y queda en auditoría.
 - Las contraseñas de demostración no son un directorio institucional. La evolución prevista es Microsoft Entra ID.
 - SQLite no es Azure SQL: hay guía de compatibilidad en `docs/arquitectura-azure.md`.
+- En Vercel, sin Neon, los datos se pierden al apagar la instancia. Con Neon la demo persiste igual que en local, pero no es el entorno institucional.

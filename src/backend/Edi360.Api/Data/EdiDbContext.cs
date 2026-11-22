@@ -70,9 +70,13 @@ public class EdiDbContext(DbContextOptions<EdiDbContext> options) : DbContext(op
     public DbSet<MigrationIssue> MigrationIssues => Set<MigrationIssue>();
     public DbSet<MigrationCheckpoint> MigrationCheckpoints => Set<MigrationCheckpoint>();
     public DbSet<LegacyMapping> LegacyMappings => Set<LegacyMapping>();
+    public DbSet<StoredBlob> FileBlobs => Set<StoredBlob>();
 
     protected override void OnModelCreating(ModelBuilder model)
     {
+        if (Database.ProviderName?.Contains("Npgsql", StringComparison.OrdinalIgnoreCase) == true)
+            model.HasDefaultSchema("edi");
+        model.Entity<StoredBlob>().HasKey(x => x.Path);
         model.Entity<UserRoleLink>().HasKey(x => new { x.UserId, x.RoleId });
         model.Entity<RolePermissionLink>().HasKey(x => new { x.RoleId, x.PermissionId });
         model.Entity<UserAccount>().HasIndex(x => x.UserName).IsUnique();
@@ -149,6 +153,8 @@ public class LegacyDbContext(DbContextOptions<LegacyDbContext> options) : DbCont
 
     protected override void OnModelCreating(ModelBuilder model)
     {
+        if (Database.ProviderName?.Contains("Npgsql", StringComparison.OrdinalIgnoreCase) == true)
+            model.HasDefaultSchema("gedess");
         model.Entity<LegacyRecord>().HasIndex(x => x.LegacyNumber);
         SqliteDates.Apply(model, Database);
     }

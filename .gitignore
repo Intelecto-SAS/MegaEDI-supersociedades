@@ -20,5 +20,6 @@ playwright-report/
 *.log
 .env
 .env.local
+.vercel
 src/frontend/src/assets/
 src/backend/Edi360.Api/wwwroot/

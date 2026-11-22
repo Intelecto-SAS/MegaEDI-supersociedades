@@ -1,0 +1,8 @@
+data/
+**/bin/
+**/obj/
+**/*.db
+**/*.db-shm
+**/*.db-wal
+src/backend/Edi360.Tests/
+docs/fuentes/
