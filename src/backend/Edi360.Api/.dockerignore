@@ -1,5 +1,10 @@
 bin/
 obj/
+.git/
+**/.git
 *.user
 *.http
 appsettings.Development.json
+Dockerfile.vercel
+.dockerignore
+**/*.md
