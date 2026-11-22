@@ -104,7 +104,7 @@ export function RecordDetailPage() {
           </dl>
           <p className="text-sm leading-relaxed">{data.body}</p>
           {data.suggestionExplanation && (
-            <div className="rounded-md bg-gold/10 p-3 text-sm">
+            <div className="rounded-md bg-brand/10 p-3 text-sm">
               <p className="font-medium">Sugerencia del motor local</p>
               <p>{data.suggestionExplanation}</p>
               <p className="text-xs mt-1">Decisión humana: {data.suggestionDecision}</p>

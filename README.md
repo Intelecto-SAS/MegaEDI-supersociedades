@@ -6,15 +6,32 @@ El entorno es local, con datos y funcionarios ficticios. No se conecta a sistema
 
 ## Cómo iniciar la demostración
 
-En un equipo con .NET 10 y Node.js 22:
+Hace falta **.NET 10** y **Node.js 22**. La interfaz sola no basta: sin el servidor las pantallas salen en blanco.
+
+**Windows:** haga doble clic en `scripts\start.cmd`. Se abren dos ventanas; no las cierre. Luego entre a [http://127.0.0.1:5173](http://127.0.0.1:5173).
+
+Si prefiere hacerlo a mano, primero el servidor y después la interfaz:
+
+```bat
+scripts\start-api.cmd
+scripts\start-ui.cmd
+```
+
+**macOS / Linux:**
 
 ```bash
 ./scripts/dev.sh
 ```
 
-Abra [http://127.0.0.1:5173](http://127.0.0.1:5173).
+Abra [http://127.0.0.1:5173](http://127.0.0.1:5173). Compruebe el servidor en [http://127.0.0.1:5080/api/salud](http://127.0.0.1:5080/api/salud).
 
 La contraseña de todos los funcionarios de demostración es `demo`.
+
+### Si el servidor no arranca
+
+1. En una terminal: `dotnet --version`. Debe empezar por `10.`. Si no, instale el SDK: https://dotnet.microsoft.com/download/dotnet/10.0
+2. Deje abierta la ventana de `start-api.cmd` y lea el error (falta SDK, puerto 5080 ocupado, etc.).
+3. No abra solo la carpeta `src/frontend`. Los datos viven en el servidor.
 
 ## Con qué perfil entrar
 
@@ -32,6 +49,8 @@ La contraseña de todos los funcionarios de demostración es `demo`.
 | Modernización GeDeSS y cambio de perfil | Valeria Santamaría López |
 
 Cada funcionario ve un inicio distinto: bandeja operativa, carga del equipo, delegatura o tablero institucional.
+
+La interfaz usa el color institucional `#962D46`, Nunito Sans y el escudo de la Superintendencia, según el manual de identidad visual.
 
 ## Recorrido de diez minutos
 

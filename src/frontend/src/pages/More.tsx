@@ -73,7 +73,7 @@ export function DashboardPage() {
             <XAxis dataKey="name" tick={{ fontSize: 11 }} />
             <YAxis allowDecimals={false} />
             <Tooltip />
-            <Bar dataKey="value" fill="#0B1F33" radius={[4, 4, 0, 0]} />
+            <Bar dataKey="value" fill="#962D46" radius={[4, 4, 0, 0]} />
           </BarChart>
         </ResponsiveContainer>
       </Card>
@@ -219,7 +219,7 @@ export const AnalyticsPage = () => {
             <XAxis dataKey="sector" tick={{ fontSize: 10 }} />
             <YAxis />
             <Tooltip />
-            <Bar dataKey="n" fill="#0B1F33" />
+            <Bar dataKey="n" fill="#962D46" />
           </BarChart>
         </ResponsiveContainer>
       </Card>

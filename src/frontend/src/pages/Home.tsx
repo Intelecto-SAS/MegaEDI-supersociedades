@@ -19,7 +19,7 @@ export function HomePage() {
       <div className="grid md:grid-cols-2 xl:grid-cols-4 gap-3 mb-6">
         {data.kpis.map((k) => (
           <Link key={k.id} to={k.href || '#'}>
-            <Card className="hover:border-gold/50">
+            <Card className="hover:border-brand/40">
               <p className="text-[11px] uppercase tracking-wider text-muted">{k.label}</p>
               <p className="serif text-3xl text-navy mt-1">{k.value}</p>
               <p className="text-xs text-muted mt-1">{k.hint}</p>

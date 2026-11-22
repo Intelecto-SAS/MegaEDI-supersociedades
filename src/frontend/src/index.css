@@ -1,18 +1,27 @@
+@import "@fontsource/nunito-sans/latin-400.css";
+@import "@fontsource/nunito-sans/latin-600.css";
+@import "@fontsource/nunito-sans/latin-700.css";
+@import "@fontsource/nunito-sans/latin-800.css";
 @import "tailwindcss";
 
 @theme {
-  --font-sans: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
-  --font-serif: "Source Serif 4", ui-serif, Georgia, serif;
-  --color-navy: #0b1f33;
-  --color-navy-2: #132a44;
-  --color-ink: #1c2a3a;
-  --color-paper: #f6f3ee;
-  --color-sand: #ece6dc;
-  --color-gold: #b08a3e;
-  --color-line: #d9d1c4;
+  --font-sans: "Nunito Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-serif: "Nunito Sans", ui-sans-serif, system-ui, sans-serif;
+  --color-brand: #962d46;
+  --color-brand-dark: #7a2438;
+  --color-navy: #111111;
+  --color-navy-2: #262626;
+  --color-ink: #1a1a1a;
+  --color-paper: #f7f5f6;
+  --color-sand: #f3ecee;
+  --color-gold: #962d46;
+  --color-line: #e5dce0;
   --color-ok: #2f6b4f;
   --color-warn: #9a4b1f;
-  --color-muted: #5d6b7a;
+  --color-muted: #5c5c5c;
+  --color-flag-yellow: #ffc800;
+  --color-flag-blue: #003189;
+  --color-flag-red: #d80025;
 }
 
 html, body, #root { min-height: 100%; }
@@ -25,12 +34,16 @@ body {
   letter-spacing: 0.01em;
 }
 
-h1, h2, .serif { font-family: var(--font-serif); }
+h1, h2, .serif {
+  font-family: var(--font-sans);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
 
 :focus-visible {
-  outline: 2px solid var(--color-gold);
+  outline: 2px solid var(--color-brand);
   outline-offset: 2px;
 }
 
 .sidebar-scroll::-webkit-scrollbar { width: 8px; }
-.sidebar-scroll::-webkit-scrollbar-thumb { background: #1e3a56; border-radius: 99px; }
+.sidebar-scroll::-webkit-scrollbar-thumb { background: #3a3a3a; border-radius: 99px; }

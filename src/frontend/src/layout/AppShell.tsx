@@ -5,7 +5,7 @@ import {
   Briefcase, Landmark, BarChart3, Sparkles, FolderSync, ChevronLeft
 } from 'lucide-react'
 import { useAuth } from '@/lib/auth'
-import { Button, Input } from '@/components/ui'
+import { BrandMark, Button, FlagStripe, Input } from '@/components/ui'
 import { useQuery } from '@tanstack/react-query'
 import { api } from '@/lib/api'
 
@@ -61,14 +61,18 @@ export function AppShell() {
   const clock = session ? new Date(session.businessClock) : new Date()
 
   return (
-    <div className="min-h-screen flex bg-paper">
-      <aside className={`${collapsed ? 'w-[72px]' : 'w-[272px]'} shrink-0 bg-navy text-white flex flex-col transition-all`}>
-        <div className="px-4 py-5 border-b border-white/10 flex items-center gap-3">
-          <div className="h-9 w-9 rounded-md bg-gold/20 grid place-items-center text-gold font-serif text-lg">E</div>
+    <div className="min-h-screen flex flex-col bg-paper">
+      <FlagStripe />
+      <div className="flex flex-1 min-h-0">
+      <aside className={`${collapsed ? 'w-[72px]' : 'w-[272px]'} shrink-0 bg-navy text-white flex flex-col min-h-0`}>
+        <div className="px-4 py-4 border-b border-white/10 flex items-center gap-3">
+          <div className="h-10 w-10 rounded-md bg-white grid place-items-center p-0.5 shrink-0">
+            <BrandMark compact className="h-8 w-8" />
+          </div>
           {!collapsed && (
-            <div>
+            <div className="min-w-0">
               <p className="serif text-lg leading-none">EDI 360</p>
-              <p className="text-[10px] uppercase tracking-[0.16em] text-white/50 mt-1">Superintendencia</p>
+              <p className="text-[10px] uppercase tracking-[0.14em] text-white/55 mt-1 leading-tight">Superintendencia de Sociedades</p>
             </div>
           )}
         </div>
@@ -96,13 +100,13 @@ export function AppShell() {
             )
           })}
           {can('GD.MIGRAR') && (
-            <NavLink to="/modernizacion" className={({ isActive }) => `flex items-center gap-2 rounded-md px-3 py-1.5 text-[13px] ${isActive ? 'bg-gold/20 text-gold' : 'text-gold/80 hover:bg-gold/10'}`}>
+            <NavLink to="/modernizacion" className={({ isActive }) => `flex items-center gap-2 rounded-md px-3 py-1.5 text-[13px] ${isActive ? 'bg-white/15 text-white' : 'text-white/80 hover:bg-white/5 hover:text-white'}`}>
               <FolderSync size={16} />
               {!collapsed && 'Modernización GeDeSS'}
             </NavLink>
           )}
           {can('DEMO.CONTROL') && (
-            <NavLink to="/demo" className={({ isActive }) => `mt-1 flex items-center gap-2 rounded-md px-3 py-1.5 text-[13px] ${isActive ? 'bg-gold text-navy' : 'text-gold hover:bg-gold/10'}`}>
+            <NavLink to="/demo" className={({ isActive }) => `mt-1 flex items-center gap-2 rounded-md px-3 py-1.5 text-[13px] ${isActive ? 'bg-brand text-white' : 'text-white/80 hover:bg-white/5'}`}>
               <Sparkles size={16} />
               {!collapsed && 'Centro de demostración'}
             </NavLink>
@@ -135,12 +139,13 @@ export function AppShell() {
         </header>
         <main className="flex-1 p-6 lg:p-8 overflow-auto">
           {session?.impersonatedBy && (
-            <div className="mb-4 rounded-md bg-gold/15 border border-gold/30 px-3 py-2 text-sm text-navy">
+            <div className="mb-4 rounded-md bg-brand/10 border border-brand/25 px-3 py-2 text-sm text-navy">
               Está presentando como {session.displayName}. El cambio de funcionario quedó registrado.
             </div>
           )}
           <Outlet />
         </main>
+      </div>
       </div>
     </div>
   )

@@ -57,7 +57,7 @@ export function DemoPage() {
       <h2 className="serif text-2xl text-navy mb-3">Cambiar de funcionario</h2>
       <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-2 mb-8">
         {(data?.officials ?? []).slice(0, 24).map((o: any) => (
-          <button key={o.id} className="text-left rounded-lg border border-line bg-white px-3 py-2 hover:border-gold" onClick={() => api.post('/api/demo/impersonar', { userId: o.id }).then(() => location.reload())}>
+          <button key={o.id} className="text-left rounded-lg border border-line bg-white px-3 py-2 hover:border-brand" onClick={() => api.post('/api/demo/impersonar', { userId: o.id }).then(() => location.reload())}>
             <p className="text-sm font-medium">{o.displayName}</p>
             <p className="text-xs text-muted">{o.position}</p>
           </button>

@@ -58,7 +58,7 @@ export function CaseDetailPage() {
           <h3 className="serif text-lg mb-2">Línea de tiempo</h3>
           <ul className="space-y-2 text-sm">
             {data.timeline?.map((t: any, i: number) => (
-              <li key={i} className="border-l-2 border-gold pl-3">{new Date(t.at).toLocaleDateString('es-CO')} · {t.title}</li>
+              <li key={i} className="border-l-2 border-brand pl-3">{new Date(t.at).toLocaleDateString('es-CO')} · {t.title}</li>
             ))}
           </ul>
           <h3 className="serif text-lg mt-6 mb-2">Documentos</h3>
