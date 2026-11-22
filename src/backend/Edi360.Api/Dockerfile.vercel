@@ -3,17 +3,34 @@ WORKDIR /src
 ENV DOTNET_CLI_TELEMETRY_OPTOUT=1 \
     DOTNET_SKIP_FIRST_TIME_EXPERIENCE=1 \
     DOTNET_NOLOGO=1 \
-    NUGET_XMLDOC_MODE=skip
+    NUGET_XMLDOC_MODE=skip \
+    DOTNET_EnableDiagnostics=0 \
+    DOTNET_GCHeapHardLimitPercent=50
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends libfontconfig1 libfreetype6 \
+    && rm -rf /var/lib/apt/lists/*
 COPY Edi360.Api.csproj ./
 RUN dotnet restore Edi360.Api.csproj --runtime linux-x64
-COPY . ./
+COPY Application ./Application
+COPY Contracts ./Contracts
+COPY Controllers ./Controllers
+COPY Data ./Data
+COPY Domain ./Domain
+COPY Infrastructure ./Infrastructure
+COPY Properties ./Properties
+COPY Security ./Security
+COPY Program.cs appsettings.json ./
 RUN dotnet publish Edi360.Api.csproj \
     -c Release \
-    -o /app \
+    -o /app/publish \
     --runtime linux-x64 \
     --self-contained false \
+    --no-restore \
     /p:UseAppHost=false \
+    /p:DebugType=None \
+    /p:DebugSymbols=false \
     /p:NuGetAudit=false \
+    -v n \
     -maxcpucount:1
 
 FROM mcr.microsoft.com/dotnet/aspnet:10.0
@@ -21,7 +38,8 @@ RUN apt-get update \
     && apt-get install -y --no-install-recommends libfontconfig1 libfreetype6 \
     && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
-COPY --from=build /app .
-ENV ASPNETCORE_ENVIRONMENT=Production
+COPY --from=build /app/publish .
+ENV ASPNETCORE_ENVIRONMENT=Production \
+    DOTNET_EnableDiagnostics=0
 EXPOSE 80
 CMD ["sh", "-c", "dotnet Edi360.Api.dll --urls http://0.0.0.0:${PORT:-80}"]
