@@ -6,6 +6,19 @@ export class ApiError extends Error {
   }
 }
 
+export function isLocalHost() {
+  if (typeof window === 'undefined') return false
+  const host = window.location.hostname
+  return host === '127.0.0.1' || host === 'localhost'
+}
+
+export function connectionErrorMessage() {
+  if (isLocalHost()) {
+    return 'No hay conexión con el servidor. Debe estar en marcha en http://127.0.0.1:5080'
+  }
+  return 'No hay conexión con el servidor. Abra /api/salud en esta misma dirección: si no responde, el servicio backend no se desplegó.'
+}
+
 async function parse(res: Response) {
   const text = await res.text()
   const data = text ? JSON.parse(text) : null
@@ -21,7 +34,7 @@ async function request(url: string, init?: RequestInit) {
     return await parse(res)
   } catch (e) {
     if (e instanceof ApiError) throw e
-    throw new ApiError(0, 'No hay conexión con el servidor. Debe estar en marcha en http://127.0.0.1:5080')
+    throw new ApiError(0, connectionErrorMessage())
   }
 }
 
@@ -40,7 +53,7 @@ export const api = {
       return res.blob()
     } catch (e) {
       if (e instanceof ApiError) throw e
-      throw new ApiError(0, 'No hay conexión con el servidor. Debe estar en marcha en http://127.0.0.1:5080')
+      throw new ApiError(0, connectionErrorMessage())
     }
   },
 }

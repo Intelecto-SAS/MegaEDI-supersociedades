@@ -74,4 +74,11 @@ Documentación de apoyo: `docs/`.
 
 ## Publicar en Vercel
 
-En local los datos viven en archivos. En Vercel hay que conectar una base Neon para que radicados, expedientes y el cambio de funcionario sobrevivan. Pasos en `docs/despliegue-vercel.md`.
+En local los datos viven en archivos. En Vercel hay que conectar una base Neon para que radicados, expedientes y el cambio de funcionario sobrevivan.
+
+1. En el proyecto de Vercel, **Root Directory vacío** (raíz del repo). Si queda en `src/frontend` solo sale la interfaz y `/api/salud` no responde.
+2. **Storage → Create Database → Neon**, para que exista `DATABASE_URL`.
+3. Redeploy. El build debe mostrar los servicios `frontend` y `backend`.
+4. Compruebe `https://<su-dominio>/api/salud`: debe devolver `estado: ok` y `persistencia: compartida`.
+
+Pasos completos en `docs/despliegue-vercel.md`.
