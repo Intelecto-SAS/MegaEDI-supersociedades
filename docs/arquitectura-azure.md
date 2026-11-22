@@ -5,8 +5,8 @@ La demo no incluye clientes obligatorios de Azure. Las piezas locales se diseña
 | Función | Hoy | Evolución |
 |---|---|---|
 | Identidad | Sesión local | Microsoft Entra ID |
-| Base | SQLite | Azure SQL Database |
-| Documentos | Disco local | Azure Blob Storage |
+| Base | SQLite en local; Postgres (Neon) en Vercel | Azure SQL Database |
+| Documentos | Disco local; en Vercel, misma base | Azure Blob Storage |
 | Eventos | Outbox local | Azure Service Bus |
 | API | Proceso local | Azure Container Apps |
 | Observación | Bitácora y auditoría | Azure Monitor |

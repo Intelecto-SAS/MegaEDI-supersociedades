@@ -40,6 +40,15 @@ public sealed class AuthService(EdiDbContext db)
     public const string CookieName = "edi_session";
     public const string DemoPassword = "demo";
 
+    public static CookieOptions SessionCookie(HttpRequest request) => new()
+    {
+        HttpOnly = true,
+        SameSite = SameSiteMode.Lax,
+        Secure = request.IsHttps,
+        Path = "/",
+        Expires = DateTimeOffset.UtcNow.AddHours(12)
+    };
+
     public static string HashPassword(string password) =>
         Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes("edi360-demo|" + password)));
 

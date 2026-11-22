@@ -38,3 +38,5 @@ Automatizadas (xUnit): inicio de sesión, cambio de perfil, restricción de radi
 Manuales de presentación: los ocho recorridos del centro de demostración.
 
 No ejecutado en este entregable: Playwright de interfaz. La verificación visual se hace en el navegador de la demo.
+
+Publicación en Vercel: interfaz y API en un solo proyecto (`vercel.json`). Persistencia en Neon cuando existe `DATABASE_URL`. Guía: `docs/despliegue-vercel.md`.

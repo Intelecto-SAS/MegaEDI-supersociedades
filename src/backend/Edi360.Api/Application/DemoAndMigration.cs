@@ -97,9 +97,9 @@ public sealed class MigrationService(EdiDbContext db, LegacyDbContext legacy, Au
                 SuggestionDecision = "No aplica"
             };
             db.Records.Add(rec);
-            if (!string.IsNullOrWhiteSpace(r.DocumentPath) && File.Exists(r.DocumentPath))
+            if (!string.IsNullOrWhiteSpace(r.DocumentPath) && await files.ExistsAsync(r.DocumentPath, ct))
             {
-                await using var fs = File.OpenRead(r.DocumentPath);
+                await using var fs = await files.OpenAsync(r.DocumentPath, ct);
                 var saved = await files.SaveAsync(fs, Path.Combine("migrated", rec.Id.ToString()), Path.GetFileName(r.DocumentPath), ct);
                 var doc = new StoredDocument
                 {

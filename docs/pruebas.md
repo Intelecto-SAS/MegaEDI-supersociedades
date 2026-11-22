@@ -14,4 +14,4 @@ Cubierto:
 
 Pendiente de automatizar en navegador (Playwright): los ocho recorridos de pantalla. Deben ejecutarse con el guion gerencial.
 
-Los datos sobreviven al reinicio: quedan en `data/*.db` y en el almacenamiento de archivos.
+Los datos sobreviven al reinicio: en local quedan en `data/*.db` y en archivos; en Vercel, en Neon cuando existe `DATABASE_URL`.

@@ -108,6 +108,9 @@ public interface IFileStorage
 {
     Task<(string path, string sha, long size)> SaveAsync(Stream content, string relativeDir, string fileName, CancellationToken ct);
     Task<Stream> OpenAsync(string path, CancellationToken ct);
+    Task<bool> ExistsAsync(string path, CancellationToken ct);
+    Task<string?> ReadTextAsync(string path, CancellationToken ct);
+    Task ResetAsync(CancellationToken ct);
     string ComputeHash(byte[] bytes);
 }
 
@@ -115,13 +118,13 @@ public sealed class LocalFileStorage(AppPaths paths) : IFileStorage
 {
     public async Task<(string path, string sha, long size)> SaveAsync(Stream content, string relativeDir, string fileName, CancellationToken ct)
     {
+        using var ms = new MemoryStream();
+        await content.CopyToAsync(ms, ct);
+        var bytes = ms.ToArray();
         var dir = Path.Combine(paths.Storage, relativeDir);
         Directory.CreateDirectory(dir);
         var full = Path.Combine(dir, fileName);
-        await using var fs = File.Create(full);
-        await content.CopyToAsync(fs, ct);
-        await fs.FlushAsync(ct);
-        var bytes = await File.ReadAllBytesAsync(full, ct);
+        await File.WriteAllBytesAsync(full, bytes, ct);
         return (full, ComputeHash(bytes), bytes.LongLength);
     }
 
@@ -130,6 +133,72 @@ public sealed class LocalFileStorage(AppPaths paths) : IFileStorage
         if (!File.Exists(path)) throw new FileNotFoundException("El documento no está disponible.", path);
         Stream stream = File.OpenRead(path);
         return Task.FromResult(stream);
+    }
+
+    public Task<bool> ExistsAsync(string path, CancellationToken ct) => Task.FromResult(File.Exists(path));
+
+    public async Task<string?> ReadTextAsync(string path, CancellationToken ct) =>
+        File.Exists(path) ? await File.ReadAllTextAsync(path, ct) : null;
+
+    public Task ResetAsync(CancellationToken ct)
+    {
+        Clear(paths.Storage);
+        Clear(paths.LegacyStorage);
+        Clear(paths.Pages);
+        return Task.CompletedTask;
+    }
+
+    public string ComputeHash(byte[] bytes) => Convert.ToHexString(SHA256.HashData(bytes));
+
+    private static void Clear(string dir)
+    {
+        if (Directory.Exists(dir)) Directory.Delete(dir, true);
+        Directory.CreateDirectory(dir);
+    }
+}
+
+public sealed class DatabaseFileStorage(EdiDbContext db) : IFileStorage
+{
+    public async Task<(string path, string sha, long size)> SaveAsync(Stream content, string relativeDir, string fileName, CancellationToken ct)
+    {
+        using var ms = new MemoryStream();
+        await content.CopyToAsync(ms, ct);
+        var bytes = ms.ToArray();
+        var path = string.Join('/', "edi", relativeDir.Replace('\\', '/').Trim('/'), fileName);
+        var sha = ComputeHash(bytes);
+        var existing = await db.FileBlobs.FindAsync([path], ct);
+        if (existing is null)
+        {
+            db.FileBlobs.Add(new StoredBlob { Path = path, Content = bytes, Sha256 = sha, Size = bytes.LongLength });
+        }
+        else
+        {
+            existing.Content = bytes;
+            existing.Sha256 = sha;
+            existing.Size = bytes.LongLength;
+        }
+        return (path, sha, bytes.LongLength);
+    }
+
+    public async Task<Stream> OpenAsync(string path, CancellationToken ct)
+    {
+        var blob = await db.FileBlobs.AsNoTracking().FirstOrDefaultAsync(x => x.Path == path, ct)
+            ?? throw new FileNotFoundException("El documento no está disponible.", path);
+        return new MemoryStream(blob.Content, writable: false);
+    }
+
+    public Task<bool> ExistsAsync(string path, CancellationToken ct) =>
+        db.FileBlobs.AnyAsync(x => x.Path == path, ct);
+
+    public async Task<string?> ReadTextAsync(string path, CancellationToken ct)
+    {
+        var blob = await db.FileBlobs.AsNoTracking().FirstOrDefaultAsync(x => x.Path == path, ct);
+        return blob is null ? null : Encoding.UTF8.GetString(blob.Content);
+    }
+
+    public async Task ResetAsync(CancellationToken ct)
+    {
+        await db.FileBlobs.ExecuteDeleteAsync(ct);
     }
 
     public string ComputeHash(byte[] bytes) => Convert.ToHexString(SHA256.HashData(bytes));
@@ -184,21 +253,36 @@ public sealed class LocalAssistanceEngine
 
 public sealed class OutboxProcessor(IServiceProvider sp, ILogger<OutboxProcessor> log) : BackgroundService
 {
+    private readonly SemaphoreSlim _gate = new(1, 1);
+
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         while (!stoppingToken.IsCancellationRequested)
         {
             try { await ProcessOnce(stoppingToken); }
             catch (Exception ex) { log.LogWarning(ex, "Procesamiento de eventos"); }
-            await Task.Delay(TimeSpan.FromSeconds(1), stoppingToken);
+            await Task.Delay(TimeSpan.FromSeconds(2), stoppingToken);
         }
     }
 
     public async Task ProcessOnce(CancellationToken ct)
     {
-        using var scope = sp.CreateScope();
-        var db = scope.ServiceProvider.GetRequiredService<EdiDbContext>();
-        var clock = scope.ServiceProvider.GetRequiredService<IBusinessClock>();
+        if (!await _gate.WaitAsync(0, ct)) return;
+        try
+        {
+            using var scope = sp.CreateScope();
+            await ProcessInScope(scope.ServiceProvider, ct);
+        }
+        finally
+        {
+            _gate.Release();
+        }
+    }
+
+    private static async Task ProcessInScope(IServiceProvider scoped, CancellationToken ct)
+    {
+        var db = scoped.GetRequiredService<EdiDbContext>();
+        var clock = scoped.GetRequiredService<IBusinessClock>();
         var pending = await db.Outbox.Where(x => x.Status == "Pendiente" || x.Status == "Reintento")
             .OrderBy(x => x.CreatedAt).Take(20).ToListAsync(ct);
         foreach (var msg in pending)

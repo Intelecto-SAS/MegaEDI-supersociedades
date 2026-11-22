@@ -820,3 +820,11 @@ public class LegacyMapping
     public string FileHash { get; set; } = "";
     public string Status { get; set; } = "Pendiente";
 }
+
+public class StoredBlob
+{
+    public string Path { get; set; } = "";
+    public byte[] Content { get; set; } = [];
+    public string Sha256 { get; set; } = "";
+    public long Size { get; set; }
+}

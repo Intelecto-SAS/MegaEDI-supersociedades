@@ -52,3 +52,7 @@ El guion está en `docs/guion-demo-gerencial.md`. En síntesis:
 - GeDeSS en esta demo es un repositorio heredado simulado, no el sistema real.
 
 Documentación de apoyo: `docs/`.
+
+## Publicar en Vercel
+
+En local los datos viven en archivos. En Vercel hay que conectar una base Neon para que radicados, expedientes y el cambio de funcionario sobrevivan. Pasos en `docs/despliegue-vercel.md`.

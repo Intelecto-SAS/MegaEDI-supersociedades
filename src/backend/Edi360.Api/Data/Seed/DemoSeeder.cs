@@ -1,5 +1,6 @@
 using System.Security.Cryptography;
 using System.Text;
+using Edi360.Api.Application;
 using Edi360.Api.Domain;
 using Edi360.Api.Infrastructure;
 using Edi360.Api.Security;
@@ -10,7 +11,7 @@ namespace Edi360.Api.Data.Seed;
 public sealed class DemoSeeder(
     EdiDbContext db,
     LegacyDbContext legacy,
-    AppPaths paths)
+    IFileStorage files)
 {
     private readonly Random _rng = new(2026);
 
@@ -22,20 +23,20 @@ public sealed class DemoSeeder(
 
     public async Task ResetAsync(CancellationToken ct = default)
     {
-        await db.Database.EnsureDeletedAsync(ct);
-        await legacy.Database.EnsureDeletedAsync(ct);
+        if (db.Database.IsNpgsql())
+        {
+            await db.Database.ExecuteSqlRawAsync("DROP SCHEMA IF EXISTS edi CASCADE; CREATE SCHEMA edi;", ct);
+            await legacy.Database.ExecuteSqlRawAsync("DROP SCHEMA IF EXISTS gedess CASCADE; CREATE SCHEMA gedess;", ct);
+        }
+        else
+        {
+            await db.Database.EnsureDeletedAsync(ct);
+            await legacy.Database.EnsureDeletedAsync(ct);
+        }
         await db.Database.EnsureCreatedAsync(ct);
         await legacy.Database.EnsureCreatedAsync(ct);
-        ClearDir(paths.Storage);
-        ClearDir(paths.LegacyStorage);
-        ClearDir(paths.Pages);
+        await files.ResetAsync(ct);
         await SeedAllAsync(ct);
-    }
-
-    private static void ClearDir(string dir)
-    {
-        if (Directory.Exists(dir)) Directory.Delete(dir, true);
-        Directory.CreateDirectory(dir);
     }
 
     private async Task SeedAllAsync(CancellationToken ct)
@@ -46,14 +47,21 @@ public sealed class DemoSeeder(
         SeedPeople();
         SeedSocietiesAndParties();
         SeedFinancials();
-        SeedCasesAndRecords();
+        await SeedCasesAndRecords(ct);
         SeedAuxiliariesContracts();
         SeedQualityIntegrations();
         SeedReportsAndDemo();
         await db.SaveChangesAsync(ct);
-        SeedLegacy();
+        await SeedLegacy(ct);
         await legacy.SaveChangesAsync(ct);
         await db.SaveChangesAsync(ct);
+    }
+
+    private async Task<string> StoreAsync(string dir, string name, byte[] bytes, CancellationToken ct)
+    {
+        await using var ms = new MemoryStream(bytes);
+        var saved = await files.SaveAsync(ms, dir, name, ct);
+        return saved.path;
     }
 
     private void SeedOrg()
@@ -488,7 +496,7 @@ public sealed class DemoSeeder(
         }
     }
 
-    private void SeedCasesAndRecords()
+    private async Task SeedCasesAndRecords(CancellationToken ct)
     {
         var channels = new[] { "Correo", "Ventanilla", "Mensajería", "Formulario" };
         var statuses = new[] { "Radicado", "En reparto", "Asignado", "En gestión", "Respondido", "Cerrado" };
@@ -641,11 +649,8 @@ public sealed class DemoSeeder(
             var recId = DemoIds.Of("rec:" + i);
             var docId = DemoIds.Of("doc:" + i);
             var bytes = Encoding.UTF8.GetBytes($"Documento demostrativo {i}\n{SubjectFor(i)}\nSin datos reales.");
-            var rel = Path.Combine("docs", i.ToString("000"));
-            Directory.CreateDirectory(Path.Combine(paths.Storage, rel));
             var fileName = $"documento-{i:000}.txt";
-            var full = Path.Combine(paths.Storage, rel, fileName);
-            File.WriteAllBytes(full, bytes);
+            var full = await StoreAsync(Path.Combine("docs", i.ToString("000")), fileName, bytes, ct);
             db.Documents.Add(new StoredDocument
             {
                 Id = docId,
@@ -719,8 +724,7 @@ public sealed class DemoSeeder(
                 <= 8 => ProcessPageHtml(i, complete: false, fresh: true),
                 _ => ProcessPageHtml(i, complete: true, fresh: false)
             };
-            var path = Path.Combine(paths.Pages, $"proceso-{i:00}.html");
-            File.WriteAllText(path, html);
+            var path = await StoreAsync("pages", $"proceso-{i:00}.html", Encoding.UTF8.GetBytes(html), ct);
             db.ProcessPages.Add(new ProcessWebPage
             {
                 Id = DemoIds.Of("page:" + i),
@@ -881,7 +885,7 @@ public sealed class DemoSeeder(
         });
     }
 
-    private void SeedLegacy()
+    private async Task SeedLegacy(CancellationToken ct)
     {
         for (var i = 1; i <= 100; i++)
         {
@@ -889,8 +893,7 @@ public sealed class DemoSeeder(
             var dup = i is 21 or 22;
             var noCase = i % 4 == 0;
             var bytes = Encoding.UTF8.GetBytes($"GEDESS heredado {i}");
-            var path = Path.Combine(paths.LegacyStorage, $"gd-{i:000}.txt");
-            File.WriteAllBytes(path, bytes);
+            var path = await StoreAsync("legacy", $"gd-{i:000}.txt", bytes, ct);
             legacy.Records.Add(new LegacyRecord
             {
                 Id = DemoIds.Of("leg:" + i),
