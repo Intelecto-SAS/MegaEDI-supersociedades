@@ -65,6 +65,7 @@ No copie cadenas de conexión en el código ni en capturas de la presentación.
 - **La API no responde.** En Logs del servicio `backend`, el proceso debe escuchar el puerto `PORT` de Vercel, no el 80 fijo.
 - **El build quita `EdiDbContext.cs` y las semillas.** En `.vercelignore` la carpeta local es `/data/` (raíz). Un patrón `data/` sin barra inicial también borra `src/backend/Edi360.Api/Data/`, y el publish falla.
 - **El build falla en `dotnet publish`.** En Logs del servicio `backend`, copie las líneas que empiezan por `error` de MSBuild, no solo el comando `buildah`. Si no hay ninguna, el builder se quedó sin memoria.
+- **En Logs aparece `Couldn't set postgres://` y el proceso sale con código 134.** Npgsql no acepta la URL de Neon tal cual. La API la convierte a `Host=…;Username=…` antes de abrir la base. Redesplegue `main` con este cambio.
 - **Error al crear tablas.** Revise que `DATABASE_URL` tenga `sslmode=require` (Neon lo trae).
 
 Local no usa estas variables: sigue en SQLite.
