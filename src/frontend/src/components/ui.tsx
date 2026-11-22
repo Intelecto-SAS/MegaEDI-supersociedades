@@ -11,11 +11,11 @@ export function Button({
   ...props
 }: ButtonHTMLAttributes<HTMLButtonElement> & { variant?: 'primary' | 'ghost' | 'gold' | 'danger' | 'plain' }) {
   const styles = {
-    primary: 'bg-navy text-white hover:bg-navy-2',
-    gold: 'bg-gold text-navy hover:brightness-105',
+    primary: 'bg-brand text-white hover:bg-brand-dark',
+    gold: 'bg-brand text-white hover:bg-brand-dark',
     ghost: 'bg-white border border-line text-ink hover:bg-sand',
     danger: 'bg-warn text-white hover:brightness-110',
-    plain: 'text-navy hover:underline',
+    plain: 'text-brand hover:underline',
   }[variant]
   return (
     <button
@@ -38,13 +38,13 @@ export function Select(props: SelectHTMLAttributes<HTMLSelectElement>) {
 }
 
 export function Card({ children, className }: { children: ReactNode; className?: string }) {
-  return <section className={cn('rounded-xl border border-line bg-white p-5 shadow-[0_1px_0_rgba(11,31,51,0.04)]', className)}>{children}</section>
+  return <section className={cn('rounded-xl border border-line bg-white p-5 shadow-[0_1px_0_rgba(150,45,70,0.06)]', className)}>{children}</section>
 }
 
 export function Badge({ children, tone = 'navy' }: { children: ReactNode; tone?: string }) {
   const map: Record<string, string> = {
-    navy: 'bg-navy/10 text-navy',
-    gold: 'bg-gold/15 text-navy',
+    navy: 'bg-brand/10 text-brand',
+    gold: 'bg-brand/10 text-brand',
     warn: 'bg-warn/10 text-warn',
     ok: 'bg-ok/10 text-ok',
     muted: 'bg-sand text-muted',
@@ -56,7 +56,7 @@ export function PageHeader({ kicker, title, actions, children }: { kicker?: stri
   return (
     <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
       <div>
-        {kicker && <p className="text-[11px] uppercase tracking-[0.18em] text-gold mb-1">{kicker}</p>}
+        {kicker && <p className="text-[11px] uppercase tracking-[0.18em] text-brand mb-1">{kicker}</p>}
         <h1 className="serif text-3xl text-navy">{title}</h1>
         {children && <p className="mt-1 text-muted max-w-2xl">{children}</p>}
       </div>
@@ -84,7 +84,7 @@ export function Empty({ children }: { children: ReactNode }) {
 
 export function AssistBanner() {
   return (
-    <p className="rounded-md border border-gold/40 bg-gold/10 px-3 py-2 text-xs text-navy">
+    <p className="rounded-md border border-brand/30 bg-brand/10 px-3 py-2 text-xs text-navy">
       Motor local de asistencia — simulación basada en reglas y plantillas. Una persona confirma cada sugerencia.
     </p>
   )
@@ -97,6 +97,35 @@ export function StatusDot({ status }: { status: string }) {
       ? 'warn'
       : 'navy'
   return <Badge tone={tone}>{status}</Badge>
+}
+
+export function FlagStripe({ className }: { className?: string }) {
+  return (
+    <div className={cn('flex h-1.5 w-full shrink-0', className)} aria-hidden>
+      <span className="flex-[2] bg-flag-yellow" />
+      <span className="flex-1 bg-flag-blue" />
+      <span className="flex-1 bg-flag-red" />
+    </div>
+  )
+}
+
+export function BrandMark({ compact = false, className }: { compact?: boolean; className?: string }) {
+  if (compact) {
+    return (
+      <img
+        src="/marca/escudo.png"
+        alt="Superintendencia de Sociedades"
+        className={cn('object-contain', className ?? 'h-9 w-9')}
+      />
+    )
+  }
+  return (
+    <img
+      src="/marca/supersociedades.png"
+      alt="Superintendencia de Sociedades"
+      className={cn('h-28 w-auto max-w-[260px] object-contain object-left', className)}
+    />
+  )
 }
 
 export function Field({ label, children }: { label: string; children: ReactNode }) {

@@ -17,7 +17,7 @@ import {
 
 function Guard({ children }: { children: ReactNode }) {
   const { session, loading } = useAuth()
-  if (loading) return <div className="min-h-screen grid place-items-center text-muted">Abriendo EDI 360…</div>
+  if (loading) return <div className="min-h-screen grid place-items-center text-muted bg-paper">Abriendo EDI 360…</div>
   if (!session) return <Navigate to="/entrar" replace />
   return children
 }

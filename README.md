@@ -33,6 +33,8 @@ La contraseña de todos los funcionarios de demostración es `demo`.
 
 Cada funcionario ve un inicio distinto: bandeja operativa, carga del equipo, delegatura o tablero institucional.
 
+La interfaz usa el color institucional `#962D46`, Nunito Sans y el escudo de la Superintendencia, según el manual de identidad visual.
+
 ## Recorrido de diez minutos
 
 El guion está en `docs/guion-demo-gerencial.md`. En síntesis:
