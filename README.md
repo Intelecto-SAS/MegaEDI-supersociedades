@@ -10,6 +10,8 @@ Hace falta **.NET 10** y **Node.js 22**. La interfaz sola no basta: sin el servi
 
 **Windows:** haga doble clic en `scripts\start.cmd`. Se abren dos ventanas; no las cierre. Luego entre a [http://127.0.0.1:5173](http://127.0.0.1:5173).
 
+En el equipo la demostración usa SQLite, aunque exista `DATABASE_URL` de Vercel. Esa variable solo aplica al publicar.
+
 Si prefiere hacerlo a mano, primero el servidor y después la interfaz:
 
 ```bat

@@ -3,6 +3,8 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 export PATH="${HOME}/.dotnet:${PATH}"
 export DOTNET_ROOT="${HOME}/.dotnet"
+unset DATABASE_URL POSTGRES_URL POSTGRES_URL_NON_POOLING POSTGRES_PRISMA_URL
+export ASPNETCORE_ENVIRONMENT=Development
 export EDI_DATA_ROOT="${EDI_DATA_ROOT:-$ROOT/data}"
 mkdir -p "$EDI_DATA_ROOT"
 

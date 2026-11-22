@@ -15,7 +15,7 @@ public sealed class AppPaths
         DataRoot = !string.IsNullOrWhiteSpace(configured)
             ? configured
             : env.IsProduction()
-                ? "/tmp/edi360"
+                ? Path.Combine(Path.GetTempPath(), "edi360")
                 : Path.GetFullPath(Path.Combine(env.ContentRootPath, "..", "..", "..", "data"));
         Directory.CreateDirectory(DataRoot);
         EdiDb = Path.Combine(DataRoot, "edi360.db");

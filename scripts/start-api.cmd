@@ -15,6 +15,11 @@ if errorlevel 1 (
 echo EDI 360 - servidor
 echo Si aparece un error, dejelo visible y no cierre esta ventana.
 echo.
+set ASPNETCORE_ENVIRONMENT=Development
+set DATABASE_URL=
+set POSTGRES_URL=
+set POSTGRES_URL_NON_POOLING=
+set POSTGRES_PRISMA_URL=
 set EDI_DATA_ROOT=%ROOT%\data
 if not exist "%EDI_DATA_ROOT%" mkdir "%EDI_DATA_ROOT%"
 cd /d "%ROOT%\src\backend\Edi360.Api"

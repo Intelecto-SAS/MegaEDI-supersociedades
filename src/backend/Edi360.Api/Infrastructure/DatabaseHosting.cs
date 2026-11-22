@@ -18,7 +18,12 @@ public static class DatabaseHosting
 
     public static string ResolveProvider(IConfiguration config)
     {
-        if (!string.IsNullOrWhiteSpace(PostgresUrl(config))) return Postgres;
+        // En el equipo, una DATABASE_URL de Vercel no debe cambiar la demo local.
+        var environment = config["ASPNETCORE_ENVIRONMENT"]
+            ?? Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
+        var localSqlite = string.Equals(environment, "Development", StringComparison.OrdinalIgnoreCase)
+            && Environment.GetEnvironmentVariable("EDI_USE_POSTGRES") != "1";
+        if (!localSqlite && !string.IsNullOrWhiteSpace(PostgresUrl(config))) return Postgres;
         var configured = config["Database:Provider"];
         return string.IsNullOrWhiteSpace(configured) ? Sqlite : configured;
     }
