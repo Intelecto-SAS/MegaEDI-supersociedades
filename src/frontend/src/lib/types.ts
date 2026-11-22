@@ -29,6 +29,8 @@ export type Notice = { id: string; title: string; detail: string; at: string; le
 export type Activity = { title: string; detail: string; at: string }
 export type QuickAction = { label: string; href: string }
 
+export type ChartSlice = { name: string; value: number }
+
 export type Home = {
   experience: string
   greeting: string
@@ -39,6 +41,9 @@ export type Home = {
   notices: Notice[]
   activity: Activity[]
   actions: QuickAction[]
+  byType: ChartSlice[]
+  byPriority: ChartSlice[]
+  deadlineHorizon: ChartSlice[]
 }
 
 export type Page<T> = { items: T[]; total: number; page: number; pageSize: number }

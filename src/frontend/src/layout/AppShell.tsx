@@ -64,7 +64,7 @@ export function AppShell() {
     <div className="min-h-screen flex flex-col bg-paper">
       <FlagStripe />
       <div className="flex flex-1 min-h-0">
-      <aside className={`${collapsed ? 'w-[72px]' : 'w-[272px]'} shrink-0 bg-navy text-white flex flex-col min-h-0`}>
+      <aside className={`${collapsed ? 'w-[72px]' : 'w-[272px]'} shrink-0 bg-wine text-white flex flex-col min-h-0`}>
         <div className="px-4 py-4 border-b border-white/10 flex items-center gap-3">
           <div className="h-10 w-10 rounded-md bg-white grid place-items-center p-0.5 shrink-0">
             <BrandMark compact className="h-8 w-8" />

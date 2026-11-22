@@ -34,6 +34,31 @@ public sealed class WorkService(EdiDbContext db, IBusinessClock clock)
         var activity = await db.AuditEvents.AsNoTracking().OrderByDescending(a => a.OccurredAt).Take(6)
             .Select(a => new ActivityDto(a.Action, a.Detail, a.OccurredAt)).ToListAsync(ct);
 
+        var chartCases = Access.FilterCases(db.Cases.AsNoTracking(), user);
+        if (user.HomeExperience == HomeExperiences.Operativo)
+            chartCases = chartCases.Where(c => c.AssigneeUserId == user.UserId);
+        else if (user.HomeExperience is HomeExperiences.Coordinador or HomeExperiences.Delegado)
+            chartCases = chartCases.Where(c => c.DepartmentId == user.DepartmentId || c.AssigneeUserId == user.UserId);
+        var chartRows = await chartCases.Select(c => new { c.Type, c.Priority }).ToListAsync(ct);
+        var byType = chartRows.GroupBy(c => string.IsNullOrWhiteSpace(c.Type) ? "Sin tipo" : c.Type)
+            .Select(g => new ChartSlice(g.Key, g.Count())).OrderByDescending(g => g.Value).ToList();
+        var priorityOrder = new[] { "Crítica", "Alta", "Media", "Baja" };
+        var byPriority = chartRows.GroupBy(c => string.IsNullOrWhiteSpace(c.Priority) ? "Sin prioridad" : c.Priority)
+            .Select(g => new ChartSlice(g.Key, g.Count()))
+            .OrderBy(g => { var i = Array.IndexOf(priorityOrder, g.Name); return i < 0 ? 9 : i; })
+            .ToList();
+
+        var now = clock.Now;
+        var dueDates = await pendingQ.Select(t => t.DueAt).ToListAsync(ct);
+        var horizon = new List<ChartSlice>
+        {
+            new("Vencidas", dueDates.Count(d => d != null && d < now)),
+            new("7 días", dueDates.Count(d => d != null && d >= now && d < now.AddDays(7))),
+            new("30 días", dueDates.Count(d => d != null && d >= now.AddDays(7) && d < now.AddDays(30))),
+            new("Después", dueDates.Count(d => d != null && d >= now.AddDays(30))),
+            new("Sin plazo", dueDates.Count(d => d == null)),
+        };
+
         var kpis = await Kpis(user, ct);
         var actions = Quick(user);
         var greeting = user.HomeExperience switch
@@ -43,7 +68,7 @@ public sealed class WorkService(EdiDbContext db, IBusinessClock clock)
             HomeExperiences.Coordinador => $"Carga del equipo · {user.DepartmentName}",
             _ => $"Bandeja de trabajo · {user.Position}"
         };
-        return new HomeDto(user.HomeExperience, greeting, kpis, pending, cases, deadlines, notices, activity, actions);
+        return new HomeDto(user.HomeExperience, greeting, kpis, pending, cases, deadlines, notices, activity, actions, byType, byPriority, horizon);
     }
 
     private async Task<List<KpiDto>> Kpis(CurrentUser user, CancellationToken ct)

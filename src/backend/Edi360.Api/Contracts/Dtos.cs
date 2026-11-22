@@ -39,7 +39,10 @@ public record HomeDto(
     IReadOnlyList<WorkItemDto> Deadlines,
     IReadOnlyList<NoticeDto> Notices,
     IReadOnlyList<ActivityDto> Activity,
-    IReadOnlyList<QuickActionDto> Actions);
+    IReadOnlyList<QuickActionDto> Actions,
+    IReadOnlyList<ChartSlice> ByType,
+    IReadOnlyList<ChartSlice> ByPriority,
+    IReadOnlyList<ChartSlice> DeadlineHorizon);
 
 public record KpiDto(string Id, string Label, string Value, string Hint, string? Href, string Tone);
 public record ActivityDto(string Title, string Detail, DateTimeOffset At);
